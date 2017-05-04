@@ -1,0 +1,92 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'jacoco'
+
+
+defaultTasks 'clean', 'build', 'publish'
+group = 'coyote'
+version = '1.1'
+
+ext {
+	title = 'Coyote IAP Request Marshaler'
+	provider = 'Coyote Systems'
+	mainClass = 'coyote.marshaler.Main'
+}
+jar {
+    manifest {
+		attributes  'Implementation-Title' : "$title",
+		'Provider' : "$provider",
+		'Main-Class' : "$mainClass",
+		'Implementation-Version' : version
+	}
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+
+ext {
+	dataFrameVersion = '1.0'
+	junitVersion = '4.11'
+}
+dependencies {
+	compile "coyote:DataFrame:$dataFrameVersion"
+	testCompile "junit:junit:$junitVersion"	
+}
+
+
+
+// custom tasks for creating source/javadoc jars
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+	archives sourcesJar, javadocJar
+}
+
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+
+			artifact sourcesJar {
+				classifier "sources"
+			}
+
+			artifact javadocJar {
+				classifier "javadoc"
+			}
+		}
+	}
+	
+	repositories {
+		mavenLocal()
+	}
+}
+
+jacocoTestReport {
+   	reports {
+       	xml.enabled = false
+        html.enabled = true
+   	}
+}
+check.dependsOn jacocoTestReport
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14'
+}
