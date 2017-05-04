@@ -76,7 +76,6 @@ public class Main extends JFrame {
     setTitle( "IAP Explore Request Marshaler" );
     initComponents();
     creatEvents();
-
   }
 
 
@@ -86,9 +85,23 @@ public class Main extends JFrame {
    * Create all the events
    */
   private void creatEvents() {
+    
+    // Handle the Save button press
     btnSave.addActionListener( new ActionListener() {
       public void actionPerformed( ActionEvent e ) {}
     } );
+    
+    // Handle the Load button press
+    btnLoad.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      }
+    });
+    
+    // Handle the Convert button press
+    btnConvert.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      }
+    });
 
   }
 
