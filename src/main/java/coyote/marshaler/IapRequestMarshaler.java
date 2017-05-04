@@ -11,7 +11,11 @@
  */
 package coyote.marshaler;
 
+import java.io.IOException;
+import java.util.List;
+
 import coyote.dataframe.DataFrame;
+import coyote.dataframe.marshal.ParseException;
 
 
 /**
@@ -19,12 +23,17 @@ import coyote.dataframe.DataFrame;
  */
 public class IapRequestMarshaler {
 
-  public static DataFrame marshal(String text){
-    return null;
-  }
+  public static DataFrame marshal( String text ) throws ParseException, IOException {
+    DataFrame retval = new DataFrame();
+    List<DataFrame> frames = null;
+    frames = new IapRequestParser( text ).parse();
 
-  public static String marshal(DataFrame frame){
-    return null;
+    if ( frames != null ) {
+      for ( DataFrame frame : frames ) {
+        retval.add( frame );
+      }
+    }
+    return retval;
   }
 
 }

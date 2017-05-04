@@ -162,14 +162,11 @@ public class IapRequestParser {
     read();
     skipWhiteSpace();
 
-    while ( ( current == '{' ) || ( current == '[' ) ) {
+    while ( !isEndOfText() ) {
       retval.add( readRootValue() );
       skipWhiteSpace();
     }
 
-    if ( !isEndOfText() ) {
-      throw error( "Unexpected character" );
-    }
     return retval;
 
   }
@@ -232,9 +229,6 @@ public class IapRequestParser {
   }
 
 
-
-
- 
 
 
   private boolean readChar( final char ch ) throws IOException {
@@ -424,7 +418,6 @@ public class IapRequestParser {
     readExponent();
 
     final String value = endCapture();
-    // TODO: support more types like exponents
     if ( isFraction ) {
       try {
         return Double.parseDouble( value );
@@ -445,14 +438,18 @@ public class IapRequestParser {
 
 
   /**
-   * Read the JSON object into a dataFrame
+   * Read the object into a dataFrame
    * 
-   * @return a dataframe containing the JSON object
+   * @return a data frame containing the object
    * 
    * @throws IOException
    */
   private DataFrame readObject() throws IOException {
-    read();
+
+    if ( current == '"' ) {
+      read();
+    }
+
     final DataFrame object = new DataFrame();
     skipWhiteSpace();
     if ( readChar( '}' ) ) {
@@ -462,7 +459,11 @@ public class IapRequestParser {
     do {
       // try to read the name
       skipWhiteSpace();
-      final String name = readName();
+      final String name = readStringInternal();
+      if ( current == '"' ) {
+        read();
+      }
+
       skipWhiteSpace();
       if ( !readChar( ':' ) ) {
         throw expected( "':'" );
@@ -492,35 +493,46 @@ public class IapRequestParser {
 
 
 
+  // this is usually
   private DataFrame readRootValue() throws IOException {
     switch ( current ) {
-      case 'n':
-        return new DataFrame( new DataField( readNull() ) );
-      case 't':
-        return new DataFrame( new DataField( readTrue() ) );
-      case 'f':
-        return new DataFrame( new DataField( readFalse() ) );
-      case '"':
-        return new DataFrame( new DataField( readString() ) );
       case '[':
         return readArray();
       case '{':
         return readObject();
-      case '-':
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-        return new DataFrame( new DataField( readNumber() ) );
       default:
-        throw expected( "value" );
+        return new DataFrame( readField() );
     }
+  }
+
+
+
+
+  // TODO: Forgiving JSON  field
+  private DataField readField() throws IOException {
+    DataField retval = null;
+
+    if ( current == '"' ) {
+      read();
+    }
+
+    do {
+      // try to read the name
+      skipWhiteSpace();
+      final String name = readName();
+      skipWhiteSpace();
+
+      if ( current == ':' ) {
+        read();
+      }
+
+      // next, read the value for this named field
+      skipWhiteSpace();
+      retval = readFieldValue( name );
+      skipWhiteSpace();
+    }
+    while ( readChar( ',' ) );
+    return retval;
   }
 
 
@@ -536,7 +548,7 @@ public class IapRequestParser {
   private String readStringInternal() throws IOException {
     read();
     startCapture();
-    while ( current != '"' ) {
+    while ( current != '"' && current != ':' && current != '{' ) {
       if ( current == '\\' ) {
         pauseCapture();
         readEscape();
@@ -548,7 +560,9 @@ public class IapRequestParser {
       }
     }
     final String string = endCapture();
-    read();
+    if ( current != '{' ) {
+      read();
+    }
     return string;
   }
 
