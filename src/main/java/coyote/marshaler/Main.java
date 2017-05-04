@@ -11,19 +11,27 @@
  */
 package coyote.marshaler;
 
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -31,10 +39,17 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+import coyote.dataframe.DataFrame;
+import coyote.dataframe.marshal.JSONMarshaler;
+import coyote.dataframe.marshal.ParseException;
 
 
 /**
@@ -43,6 +58,10 @@ import javax.swing.border.EmptyBorder;
 public class Main extends JFrame {
 
   private static final long serialVersionUID = -1349395178230143708L;
+  private static final String TITLE = "Explore Request Marshaler";
+  private DataFrame model = null;
+  private File currentFile = null;
+  private boolean modified = false;
 
   private JPanel contentPane;
   private JButton btnConvert;
@@ -54,8 +73,9 @@ public class Main extends JFrame {
   private JMenuItem mntmExit;
   private JMenuItem mntmOpen;
   private JMenuItem mntmSave;
-  private JTextField statusBar;
-  private JMenuItem mntmBoo;
+  private JMenuItem mntmSaveAs;
+  private JPanel statusPanel;
+  private JLabel statusLabel;
 
 
 
@@ -89,7 +109,44 @@ public class Main extends JFrame {
    */
   public Main() {
     initComponents();
-    creatEvents();
+    createEvents();
+  }
+
+
+
+
+  private void refreshTitle() {
+    StringBuffer b = new StringBuffer( TITLE );
+    b.append( " " );
+    if ( currentFile != null ) {
+      b.append( "(" );
+      b.append( currentFile.getName() );
+      b.append( ")" );
+    }
+    b.append( modified ? "*" : "" );
+    setTitle( b.toString() );
+  }
+
+
+
+
+  private File createJFileChooser( boolean open ) {
+    int option;
+    JFileChooser jf = new JFileChooser();
+
+    if ( open ) {
+      option = jf.showOpenDialog( this );
+    } else {
+      jf.setSelectedFile( currentFile );
+      option = jf.showSaveDialog( this );
+    }
+
+    if ( option == JFileChooser.APPROVE_OPTION ) {
+      currentFile = jf.getSelectedFile();
+      return currentFile;
+    }
+
+    return null;
   }
 
 
@@ -98,26 +155,86 @@ public class Main extends JFrame {
   /**
    * Create all the events
    */
-  private void creatEvents() {
+  private void createEvents() {
 
     // Handle the Convert button press
     btnConvert.addActionListener( new ActionListener() {
-      public void actionPerformed( ActionEvent e ) {}
+      public void actionPerformed( ActionEvent e ) {
+        try {
+          model = IapRequestMarshaler.marshal( textContent.getText() );
+          textContent.setText( JSONMarshaler.toFormattedString( model ) );
+          statusLabel.setText( "Successfully converted" );
+          modified = true;
+        } catch ( Exception ex ) {
+          if ( ex instanceof ParseException ) {
+            textContent.setCaretPosition( ( (ParseException)ex ).getOffset() );
+          }
+          statusLabel.setText( ex.getMessage() );
+        }
+      }
     } );
 
     // New file (clear everything out) 
     mntmNew.addActionListener( new ActionListener() {
-      public void actionPerformed( ActionEvent e ) {}
+      public void actionPerformed( ActionEvent e ) {
+        statusLabel.setText( "Ready" );
+        setTitle( TITLE );
+        textContent.setText( null );
+        textContent.getDocument().addDocumentListener( new MyDocumentListener() );
+        currentFile = null;
+        modified = false;
+      }
     } );
 
     // Open (read) a new file
     mntmOpen.addActionListener( new ActionListener() {
-      public void actionPerformed( ActionEvent e ) {}
+      public void actionPerformed( ActionEvent e ) {
+        try {
+          File newFile = createJFileChooser( true );
+          if ( newFile != null ) {
+            textContent.read( new FileReader( newFile ), null );
+            textContent.getDocument().addDocumentListener( new MyDocumentListener() );
+            modified = false;
+            statusLabel.setText( "Opened " + currentFile.getAbsolutePath() );
+            currentFile = newFile;
+            refreshTitle();
+          }
+        } catch ( Exception ex ) {
+          statusLabel.setText( "Error: " + ex.getMessage() );
+        }
+      }
     } );
 
     // Save a file
     mntmSave.addActionListener( new ActionListener() {
-      public void actionPerformed( ActionEvent e ) {}
+      public void actionPerformed( ActionEvent e ) {
+        try {
+          textContent.write( new FileWriter( currentFile ) );
+          modified = false;
+          statusLabel.setText( "Saved " + currentFile.getAbsolutePath() );
+          refreshTitle();
+        } catch ( Exception ex ) {
+          statusLabel.setText( "Error: " + ex.getMessage() );
+        }
+      }
+    } );
+
+    // Save the current file with a different name
+    mntmSaveAs.addActionListener( new ActionListener() {
+      public void actionPerformed( ActionEvent e ) {
+        try {
+          File newFile = createJFileChooser( true );
+          if ( newFile != null ) {
+            textContent.write( new FileWriter( createJFileChooser( false ) ) );
+            statusLabel.setText( "Saved " + currentFile.getAbsolutePath() );
+            modified = false;
+            currentFile = newFile;
+            refreshTitle();
+          }
+        } catch ( Exception ex ) {
+          statusLabel.setText( "Error: " + ex.getMessage() );
+        }
+      }
     } );
 
     // Exit the application
@@ -137,10 +254,19 @@ public class Main extends JFrame {
    */
   private void initComponents() {
 
-    setIconImage( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler.png" ) ) );
-    setTitle( "IAP Explore Request Marshaler" );
+    List<Image> icons = new ArrayList<Image>();
+    icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler.png" ) ) );
+    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler16x16.png" ) ));
+    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler24x24.png" ) ));
+    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler32x32.png" ) ));
+    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler64x64.png" ) ));
+    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler128x128.png" ) ));
+    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler256x256.png" ) ));
+    setIconImages( icons );
+
+    setTitle( TITLE );
     setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    setBounds( 100, 100, 800, 800 );
+    setBounds( 100, 100, 600, 600 );
 
     menuBar = new JMenuBar();
     menuBar.setBackground( SystemColor.menu );
@@ -152,21 +278,30 @@ public class Main extends JFrame {
 
     mntmNew = new JMenuItem( "New" );
     mntmNew.setMnemonic( KeyEvent.VK_N );
+    mntmNew.setToolTipText( "Clear the buffer and start fresh" );
     mnFile.add( mntmNew );
 
     mntmOpen = new JMenuItem( "Open" );
     mntmOpen.setMnemonic( KeyEvent.VK_O );
+    mntmOpen.setToolTipText( "Open a text file to convert" );
     mnFile.add( mntmOpen );
 
     mntmSave = new JMenuItem( "Save" );
     mntmSave.setMnemonic( KeyEvent.VK_S );
+    mntmSave.setToolTipText( "Save the current text file" );
     mnFile.add( mntmSave );
+
+    mntmSaveAs = new JMenuItem( "Save As" );
+    mntmSaveAs.setMnemonic( KeyEvent.VK_A );
+    mntmSaveAs.setToolTipText( "Save the current text file as a different name" );
+    mnFile.add( mntmSaveAs );
 
     JSeparator separator = new JSeparator();
     mnFile.add( separator );
 
     mntmExit = new JMenuItem( "Exit" );
     mntmExit.setMnemonic( KeyEvent.VK_X );
+    mntmExit.setToolTipText( "Close the tool" );
     mnFile.add( mntmExit );
 
     contentPane = new JPanel();
@@ -176,21 +311,58 @@ public class Main extends JFrame {
     scrollPane = new JScrollPane();
     textContent = new JTextArea();
     textContent.setFont( new Font( "Consolas", textContent.getFont().getStyle(), textContent.getFont().getSize() + 1 ) );
+    //scrollPane.addCaretListener(new VisibleCaretListener());
+    textContent.getDocument().addDocumentListener( new MyDocumentListener() );
     scrollPane.setViewportView( textContent );
 
-    statusBar = new JTextField();
-    statusBar.setForeground( Color.GRAY );
-    statusBar.setText( "Ready" );
-    statusBar.setEditable( false );
-    statusBar.setBackground( UIManager.getColor( "Button.light" ) );
-    statusBar.setColumns( 10 );
+    statusPanel = new JPanel();
+    statusPanel.setLayout( new BoxLayout( statusPanel, BoxLayout.X_AXIS ) );
+    statusPanel.setBorder( new BevelBorder( BevelBorder.LOWERED ) );
 
     btnConvert = new JButton( "Convert" );
+    btnConvert.setToolTipText( "Convert the buffer into the selected format" );
 
     GroupLayout gl_contentPane = new GroupLayout( contentPane );
-    gl_contentPane.setHorizontalGroup( gl_contentPane.createParallelGroup( Alignment.LEADING ).addGroup( gl_contentPane.createSequentialGroup().addGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING, false ).addGroup( gl_contentPane.createSequentialGroup().addComponent( statusBar ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( btnConvert, GroupLayout.PREFERRED_SIZE, 127, GroupLayout.PREFERRED_SIZE ) ).addComponent( scrollPane, GroupLayout.PREFERRED_SIZE, 760, GroupLayout.PREFERRED_SIZE ) ).addGap( 4 ) ) );
-    gl_contentPane.setVerticalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 623, Short.MAX_VALUE ).addGap( 21 ).addGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addComponent( btnConvert ).addComponent( statusBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) ) ) );
+    gl_contentPane.setHorizontalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( statusPanel, GroupLayout.DEFAULT_SIZE, 441, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( btnConvert, GroupLayout.PREFERRED_SIZE, 127, GroupLayout.PREFERRED_SIZE ) ).addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 574, Short.MAX_VALUE ) );
+    gl_contentPane.setVerticalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 502, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addComponent( btnConvert ).addComponent( statusPanel, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE ) ) ) );
+
+    statusLabel = new JLabel( "Ready" );
+    statusLabel.setToolTipText( "Current status of the buffer" );
+    statusLabel.setHorizontalAlignment( SwingConstants.LEFT );
+    statusPanel.add( statusLabel );
 
     contentPane.setLayout( gl_contentPane );
+  }
+
+  /**
+   * This listens for changes in the document
+   */
+  class MyDocumentListener implements DocumentListener {
+
+    public void insertUpdate( DocumentEvent e ) {
+      statusLabel.setText( "inserted into: " + e.getOffset() + "-" + e.getLength() );
+      if ( !modified ) {
+        modified = true;
+        refreshTitle();
+      }
+    }
+
+
+
+
+    public void removeUpdate( DocumentEvent e ) {
+      statusLabel.setText( "removed from: " + e.getOffset() + "-" + e.getLength() );
+      if ( !modified ) {
+        modified = true;
+        refreshTitle();
+      }
+    }
+
+
+
+
+    public void changedUpdate( DocumentEvent e ) {
+      //Plain text components do not fire these events
+    }
   }
 }
