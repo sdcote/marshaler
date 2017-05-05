@@ -256,12 +256,12 @@ public class Main extends JFrame {
 
     List<Image> icons = new ArrayList<Image>();
     icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler.png" ) ) );
-    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler16x16.png" ) ));
-    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler24x24.png" ) ));
-    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler32x32.png" ) ));
-    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler64x64.png" ) ));
-    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler128x128.png" ) ));
-    // icons.add(Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler256x256.png" ) ));
+    icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler16x16.png" ) ) );
+    icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler24x24.png" ) ) );
+    icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler32x32.png" ) ) );
+    icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler64x64.png" ) ) );
+    icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler128x128.png" ) ) );
+    icons.add( Toolkit.getDefaultToolkit().getImage( Main.class.getResource( "/marshaler256x256.png" ) ) );
     setIconImages( icons );
 
     setTitle( TITLE );
@@ -323,8 +323,23 @@ public class Main extends JFrame {
     btnConvert.setToolTipText( "Convert the buffer into the selected format" );
 
     GroupLayout gl_contentPane = new GroupLayout( contentPane );
-    gl_contentPane.setHorizontalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( statusPanel, GroupLayout.DEFAULT_SIZE, 441, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( btnConvert, GroupLayout.PREFERRED_SIZE, 127, GroupLayout.PREFERRED_SIZE ) ).addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 574, Short.MAX_VALUE ) );
-    gl_contentPane.setVerticalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 502, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addComponent( btnConvert ).addComponent( statusPanel, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE ) ) ) );
+    gl_contentPane.setHorizontalGroup(
+      gl_contentPane.createParallelGroup(Alignment.TRAILING)
+        .addGroup(gl_contentPane.createSequentialGroup()
+          .addComponent(statusPanel, GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
+          .addPreferredGap(ComponentPlacement.RELATED)
+          .addComponent(btnConvert, GroupLayout.PREFERRED_SIZE, 127, GroupLayout.PREFERRED_SIZE))
+        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE)
+    );
+    gl_contentPane.setVerticalGroup(
+      gl_contentPane.createParallelGroup(Alignment.TRAILING)
+        .addGroup(gl_contentPane.createSequentialGroup()
+          .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 432, Short.MAX_VALUE)
+          .addPreferredGap(ComponentPlacement.RELATED)
+          .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
+            .addComponent(statusPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnConvert, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+    );
 
     statusLabel = new JLabel( "Ready" );
     statusLabel.setToolTipText( "Current status of the buffer" );
