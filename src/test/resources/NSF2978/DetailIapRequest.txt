@@ -1,0 +1,1070 @@
+entity {
+  entityName: "substance"
+  identifier: "ALL-SUBSTANCE-ENTITY-ID"
+}
+entity {
+  entityName: "reaction"
+  identifier: "ALL_REACTION_STEP_ENTITY_ID"
+}
+entity {
+  entityName: "substance"
+  constraint {
+    type: SEARCH
+    search {
+      searchName: "solr"
+      queryId: "reactionTextQueryId"
+    }
+  }
+  identifier: "substanceEntityIdForReactionTextQuery"
+}
+entity {
+  entityName: "substance"
+  constraint {
+    type: SEARCH
+    search {
+      searchName: "solr"
+      queryId: "reactionTextQueryId"
+    }
+  }
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "substance_to_preferred_substance"
+      sourceIdentifier: "substanceEntityIdForReactionTextQuery"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: OR
+      scoring: SUM
+    }
+    boost: 1.0
+    identifier: "substanceEntityIdForPreferredSubstanceReactionTextQuery_CONSTRAINT_ID"
+  }
+  identifier: "substanceEntityIdForPreferredSubstanceReactionTextQuery"
+}
+entity {
+  entityName: "reaction"
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "substance_to_reaction"
+      sourceIdentifier: "substanceEntityIdForPreferredSubstanceReactionTextQuery"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  identifier: "REACTION-STEP-ENTITY-ID-6d0417b6-eeed-43f4-8e9d-fcf2a488ee4b"
+}
+entity {
+  entityName: "reaction"
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reactionStep_to_product"
+      sourceIdentifier: "substanceEntityIdForPreferredSubstanceReactionTextQuery"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  identifier: "REACTION-STEP-PRODUCT-ENTITY-ID-bc5808d6-ff8f-4d8a-88df-831cb33c6927"
+}
+entity {
+  entityName: "multiStepReaction"
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reaction_to_reactionStep"
+      sourceIdentifier: "REACTION-STEP-ENTITY-ID-6d0417b6-eeed-43f4-8e9d-fcf2a488ee4b"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  constraint {
+    type: FILTER
+    filter {
+      attribute {
+        attributeName: "NUMBER_OF_STEPS"
+        bin {
+          binName: "1"
+          relevance: 1.0
+        }
+      }
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: AND
+      scoring: SUM
+    }
+    boost: 1.0
+  }
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reaction_to_product_reactionStep"
+      sourceIdentifier: "REACTION-STEP-PRODUCT-ENTITY-ID-bc5808d6-ff8f-4d8a-88df-831cb33c6927"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: OR
+      scoring: SUM
+    }
+    boost: 1.0
+  }
+  constraint {
+    type: FILTER
+    filter {
+      attribute {
+        attributeName: "MAX_PRODUCT_YIELD"
+        bin {
+          binName: "-1"
+          relevance: 1.0
+        }
+        bin {
+          binName: "001"
+          relevance: 3.0
+        }
+        bin {
+          binName: "002"
+          relevance: 4.0
+        }
+        bin {
+          binName: "003"
+          relevance: 5.0
+        }
+        bin {
+          binName: "004"
+          relevance: 6.0
+        }
+        bin {
+          binName: "005"
+          relevance: 7.0
+        }
+        bin {
+          binName: "006"
+          relevance: 8.0
+        }
+        bin {
+          binName: "007"
+          relevance: 9.0
+        }
+        bin {
+          binName: "008"
+          relevance: 10.0
+        }
+        bin {
+          binName: "009"
+          relevance: 11.0
+        }
+        bin {
+          binName: "010"
+          relevance: 12.0
+        }
+        bin {
+          binName: "011"
+          relevance: 13.0
+        }
+        bin {
+          binName: "012"
+          relevance: 14.0
+        }
+        bin {
+          binName: "013"
+          relevance: 15.0
+        }
+        bin {
+          binName: "014"
+          relevance: 16.0
+        }
+        bin {
+          binName: "015"
+          relevance: 17.0
+        }
+        bin {
+          binName: "016"
+          relevance: 18.0
+        }
+        bin {
+          binName: "017"
+          relevance: 19.0
+        }
+        bin {
+          binName: "018"
+          relevance: 20.0
+        }
+        bin {
+          binName: "019"
+          relevance: 21.0
+        }
+        bin {
+          binName: "020"
+          relevance: 22.0
+        }
+        bin {
+          binName: "021"
+          relevance: 23.0
+        }
+        bin {
+          binName: "022"
+          relevance: 24.0
+        }
+        bin {
+          binName: "023"
+          relevance: 25.0
+        }
+        bin {
+          binName: "024"
+          relevance: 26.0
+        }
+        bin {
+          binName: "025"
+          relevance: 27.0
+        }
+        bin {
+          binName: "026"
+          relevance: 28.0
+        }
+        bin {
+          binName: "027"
+          relevance: 29.0
+        }
+        bin {
+          binName: "028"
+          relevance: 30.0
+        }
+        bin {
+          binName: "029"
+          relevance: 31.0
+        }
+        bin {
+          binName: "030"
+          relevance: 32.0
+        }
+        bin {
+          binName: "031"
+          relevance: 33.0
+        }
+        bin {
+          binName: "032"
+          relevance: 34.0
+        }
+        bin {
+          binName: "033"
+          relevance: 35.0
+        }
+        bin {
+          binName: "034"
+          relevance: 36.0
+        }
+        bin {
+          binName: "035"
+          relevance: 37.0
+        }
+        bin {
+          binName: "036"
+          relevance: 38.0
+        }
+        bin {
+          binName: "037"
+          relevance: 39.0
+        }
+        bin {
+          binName: "038"
+          relevance: 40.0
+        }
+        bin {
+          binName: "039"
+          relevance: 41.0
+        }
+        bin {
+          binName: "040"
+          relevance: 42.0
+        }
+        bin {
+          binName: "041"
+          relevance: 43.0
+        }
+        bin {
+          binName: "042"
+          relevance: 44.0
+        }
+        bin {
+          binName: "043"
+          relevance: 45.0
+        }
+        bin {
+          binName: "044"
+          relevance: 46.0
+        }
+        bin {
+          binName: "045"
+          relevance: 47.0
+        }
+        bin {
+          binName: "046"
+          relevance: 48.0
+        }
+        bin {
+          binName: "047"
+          relevance: 49.0
+        }
+        bin {
+          binName: "048"
+          relevance: 50.0
+        }
+        bin {
+          binName: "049"
+          relevance: 51.0
+        }
+        bin {
+          binName: "050"
+          relevance: 52.0
+        }
+        bin {
+          binName: "051"
+          relevance: 53.0
+        }
+        bin {
+          binName: "052"
+          relevance: 54.0
+        }
+        bin {
+          binName: "053"
+          relevance: 55.0
+        }
+        bin {
+          binName: "054"
+          relevance: 56.0
+        }
+        bin {
+          binName: "055"
+          relevance: 57.0
+        }
+        bin {
+          binName: "056"
+          relevance: 58.0
+        }
+        bin {
+          binName: "057"
+          relevance: 59.0
+        }
+        bin {
+          binName: "058"
+          relevance: 60.0
+        }
+        bin {
+          binName: "059"
+          relevance: 61.0
+        }
+        bin {
+          binName: "060"
+          relevance: 62.0
+        }
+        bin {
+          binName: "061"
+          relevance: 63.0
+        }
+        bin {
+          binName: "062"
+          relevance: 64.0
+        }
+        bin {
+          binName: "063"
+          relevance: 65.0
+        }
+        bin {
+          binName: "064"
+          relevance: 66.0
+        }
+        bin {
+          binName: "065"
+          relevance: 67.0
+        }
+        bin {
+          binName: "066"
+          relevance: 68.0
+        }
+        bin {
+          binName: "067"
+          relevance: 69.0
+        }
+        bin {
+          binName: "068"
+          relevance: 70.0
+        }
+        bin {
+          binName: "069"
+          relevance: 71.0
+        }
+        bin {
+          binName: "070"
+          relevance: 72.0
+        }
+        bin {
+          binName: "071"
+          relevance: 73.0
+        }
+        bin {
+          binName: "072"
+          relevance: 74.0
+        }
+        bin {
+          binName: "073"
+          relevance: 75.0
+        }
+        bin {
+          binName: "074"
+          relevance: 76.0
+        }
+        bin {
+          binName: "075"
+          relevance: 77.0
+        }
+        bin {
+          binName: "076"
+          relevance: 78.0
+        }
+        bin {
+          binName: "077"
+          relevance: 79.0
+        }
+        bin {
+          binName: "078"
+          relevance: 80.0
+        }
+        bin {
+          binName: "079"
+          relevance: 81.0
+        }
+        bin {
+          binName: "080"
+          relevance: 82.0
+        }
+        bin {
+          binName: "081"
+          relevance: 83.0
+        }
+        bin {
+          binName: "082"
+          relevance: 84.0
+        }
+        bin {
+          binName: "083"
+          relevance: 85.0
+        }
+        bin {
+          binName: "084"
+          relevance: 86.0
+        }
+        bin {
+          binName: "085"
+          relevance: 87.0
+        }
+        bin {
+          binName: "086"
+          relevance: 88.0
+        }
+        bin {
+          binName: "087"
+          relevance: 89.0
+        }
+        bin {
+          binName: "088"
+          relevance: 90.0
+        }
+        bin {
+          binName: "089"
+          relevance: 91.0
+        }
+        bin {
+          binName: "090"
+          relevance: 92.0
+        }
+        bin {
+          binName: "091"
+          relevance: 93.0
+        }
+        bin {
+          binName: "092"
+          relevance: 94.0
+        }
+        bin {
+          binName: "093"
+          relevance: 95.0
+        }
+        bin {
+          binName: "094"
+          relevance: 96.0
+        }
+        bin {
+          binName: "095"
+          relevance: 97.0
+        }
+        bin {
+          binName: "096"
+          relevance: 98.0
+        }
+        bin {
+          binName: "097"
+          relevance: 99.0
+        }
+        bin {
+          binName: "098"
+          relevance: 100.0
+        }
+        bin {
+          binName: "099"
+          relevance: 101.0
+        }
+        bin {
+          binName: "100"
+          relevance: 102.0
+        }
+      }
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: AND
+      scoring: SUM
+    }
+    boost: 1.0
+  }
+  constraint {
+    type: FILTER
+    filter {
+      attribute {
+        attributeName: "PRODUCT_COUNT"
+        bin {
+          binName: "1"
+          relevance: 9800.0
+        }
+        bin {
+          binName: "10"
+          relevance: 8000.0
+        }
+        bin {
+          binName: "11"
+          relevance: 7800.0
+        }
+        bin {
+          binName: "12"
+          relevance: 7600.0
+        }
+        bin {
+          binName: "13"
+          relevance: 7400.0
+        }
+        bin {
+          binName: "14"
+          relevance: 7200.0
+        }
+        bin {
+          binName: "15"
+          relevance: 7000.0
+        }
+        bin {
+          binName: "16"
+          relevance: 6800.0
+        }
+        bin {
+          binName: "17"
+          relevance: 6600.0
+        }
+        bin {
+          binName: "18"
+          relevance: 6400.0
+        }
+        bin {
+          binName: "19"
+          relevance: 6200.0
+        }
+        bin {
+          binName: "2"
+          relevance: 9600.0
+        }
+        bin {
+          binName: "20"
+          relevance: 6000.0
+        }
+        bin {
+          binName: "21"
+          relevance: 5800.0
+        }
+        bin {
+          binName: "22"
+          relevance: 5600.0
+        }
+        bin {
+          binName: "23"
+          relevance: 5400.0
+        }
+        bin {
+          binName: "24"
+          relevance: 5200.0
+        }
+        bin {
+          binName: "25"
+          relevance: 5000.0
+        }
+        bin {
+          binName: "26"
+          relevance: 4800.0
+        }
+        bin {
+          binName: "27"
+          relevance: 4600.0
+        }
+        bin {
+          binName: "28"
+          relevance: 4400.0
+        }
+        bin {
+          binName: "29"
+          relevance: 4200.0
+        }
+        bin {
+          binName: "3"
+          relevance: 9400.0
+        }
+        bin {
+          binName: "30"
+          relevance: 4000.0
+        }
+        bin {
+          binName: "31"
+          relevance: 3800.0
+        }
+        bin {
+          binName: "32"
+          relevance: 3600.0
+        }
+        bin {
+          binName: "33"
+          relevance: 3400.0
+        }
+        bin {
+          binName: "34"
+          relevance: 3200.0
+        }
+        bin {
+          binName: "35"
+          relevance: 3000.0
+        }
+        bin {
+          binName: "36"
+          relevance: 2800.0
+        }
+        bin {
+          binName: "37"
+          relevance: 2600.0
+        }
+        bin {
+          binName: "38"
+          relevance: 2400.0
+        }
+        bin {
+          binName: "4"
+          relevance: 9200.0
+        }
+        bin {
+          binName: "41"
+          relevance: 1800.0
+        }
+        bin {
+          binName: "42"
+          relevance: 1600.0
+        }
+        bin {
+          binName: "43"
+          relevance: 1400.0
+        }
+        bin {
+          binName: "45"
+          relevance: 1000.0
+        }
+        bin {
+          binName: "46"
+          relevance: 800.0
+        }
+        bin {
+          binName: "47"
+          relevance: 600.0
+        }
+        bin {
+          binName: "48"
+          relevance: 400.0
+        }
+        bin {
+          binName: "49"
+          relevance: 200.0
+        }
+        bin {
+          binName: "5"
+          relevance: 9000.0
+        }
+        bin {
+          binName: "6"
+          relevance: 8800.0
+        }
+        bin {
+          binName: "7"
+          relevance: 8600.0
+        }
+        bin {
+          binName: "8"
+          relevance: 8400.0
+        }
+        bin {
+          binName: "9"
+          relevance: 8200.0
+        }
+      }
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: AND
+      scoring: SUM
+    }
+    boost: 1.0
+  }
+  constraint {
+    type: FILTER
+    filter {
+      attribute {
+        attributeName: "NUMBER_OF_STEPS_FACET"
+        bin {
+          binName: "1"
+          relevance: 1.0
+        }
+      }
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: AND
+      scoring: PRODUCT
+    }
+    boost: 1.0
+  }
+  constraint {
+    type: PROJECTION
+    boost: 1.0
+    projection {
+      relationshipName: "reaction_to_product_reactionStep"
+      sourceIdentifier: "REACTION-STEP-PRODUCT-ENTITY-ID-bc5808d6-ff8f-4d8a-88df-831cb33c6927"
+      scoring: MAX_SRC
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: AND
+      scoring: SUM
+    }
+    boost: 1.0
+    identifier: "MULTISTEP-REACTION-ENTITY-ID_CONSTRAINT_ID"
+  }
+  identifier: "MULTISTEP-REACTION-ENTITY-ID"
+}
+entity {
+  entityName: "reactionScheme"
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reaction_to_reactionScheme"
+      sourceIdentifier: "MULTISTEP-REACTION-ENTITY-ID"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  window {
+    offset: 0
+    maxLength: 80
+    sort {
+      type: SCORE
+      ascending: false
+    }
+    representation: "key"
+    normalizeScores: false
+  }
+  window {
+    offset: 0
+    maxLength: 80
+    sort {
+      type: SCORE
+      ascending: false
+    }
+    representation: "dynamic"
+    normalizeScores: false
+    contextRequest {
+      related {
+        projection {
+          relationshipName: "reaction_to_reactionScheme"
+          sourceIdentifier: "MULTISTEP-REACTION-ENTITY-ID"
+          scoring: MAX_SRC
+          direction: REVERSE
+        }
+        window {
+          offset: 0
+          maxLength: 80
+          sort {
+            type: ATTRIBUTE
+            ascending: false
+            attributeName: "MAX_PRODUCT_YIELD"
+          }
+          representation: "summary"
+          retrievalSpec: "#Wed May 03 15:44:50 EDT 2017\nfields=[\"MULTISTEP_REACTION_URI\"]\n"
+          normalizeScores: false
+        }
+      }
+    }
+  }
+  identifier: "REACTION-SCHEME-URIS-ENTITY"
+}
+entity {
+  entityName: "multiStepReaction"
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reaction_to_reactionStep"
+      sourceIdentifier: "REACTION-STEP-ENTITY-ID-6d0417b6-eeed-43f4-8e9d-fcf2a488ee4b"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  constraint {
+    type: FILTER
+    filter {
+      attribute {
+        attributeName: "NUMBER_OF_STEPS"
+        bin {
+          binName: "1"
+          relevance: 1.0
+        }
+      }
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: AND
+      scoring: SUM
+    }
+    boost: 1.0
+  }
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reaction_to_product_reactionStep"
+      sourceIdentifier: "REACTION-STEP-PRODUCT-ENTITY-ID-bc5808d6-ff8f-4d8a-88df-831cb33c6927"
+      scoring: MAX_SRC
+      direction: FORWARD
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: OR
+      scoring: SUM
+    }
+    boost: 1.0
+  }
+  constraint {
+    type: KEYIMPORT
+    keyimport {
+      key: "multistep-reaction/879586a4-fac7-5ee3-ad53-82b8f66a6c26"
+    }
+  }
+  constraint {
+    type: OPERATION
+    operation {
+      type: AND
+      scoring: SUM
+    }
+    boost: 1.0
+    identifier: "REACTION-DETAIL-RESULTS_CONSTRAINT_ID"
+  }
+  identifier: "REACTION-DETAIL-RESULTS"
+}
+entity {
+  entityName: "reactionScheme"
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reaction_to_reactionScheme"
+      sourceIdentifier: "REACTION-DETAIL-RESULTS"
+      scoring: MAX_SRC
+      direction: REVERSE
+    }
+  }
+  identifier: "REACTION-SCHEME-RESULTS-NO-WINDOW"
+}
+entity {
+  entityName: "reference"
+  identifier: "ALL_REFERENCE_ENTITY_ID"
+}
+entity {
+  entityName: "patent_family_member"
+  identifier: "ALL_PATENT_FAMILY_MEMBER_ENTITY_ID"
+}
+entity {
+  entityName: "reactionScheme"
+  constraint {
+    type: PROJECTION
+    projection {
+      relationshipName: "reaction_to_reactionScheme"
+      sourceIdentifier: "REACTION-DETAIL-RESULTS"
+      scoring: MAX_SRC
+      direction: REVERSE
+    }
+  }
+  window {
+    offset: 0
+    maxLength: 1
+    sort {
+      type: SCORE
+      ascending: false
+    }
+    representation: "dynamic"
+    normalizeScores: false
+    contextRequest {
+      related {
+        projection {
+          relationshipName: "reaction_to_reactionScheme"
+          sourceIdentifier: "REACTION-DETAIL-RESULTS"
+          scoring: MAX_SRC
+          direction: REVERSE
+        }
+        window {
+          offset: 0
+          maxLength: 1
+          representation: "msrxn_images"
+          normalizeScores: false
+          contextRequest {
+            retrieval {
+              representationName: "steps"
+            }
+            related {
+              projection {
+                relationshipName: "reaction_to_reactionStep"
+                sourceIdentifier: "ALL_REACTION_STEP_ENTITY_ID"
+                scoring: MAX_SRC
+                direction: REVERSE
+              }
+              window {
+                offset: 0
+                maxLength: 100
+                representation: "rxn_images"
+                normalizeScores: false
+              }
+            }
+          }
+        }
+      }
+      related {
+        projection {
+          relationshipName: "reaction_to_reactionScheme"
+          sourceIdentifier: "REACTION-DETAIL-RESULTS"
+          scoring: MAX_SRC
+          direction: REVERSE
+        }
+        window {
+          offset: 0
+          maxLength: 1
+          sort {
+            type: ATTRIBUTE
+            ascending: false
+            attributeName: "MAX_PRODUCT_YIELD"
+          }
+          representation: "dynamic"
+          normalizeScores: false
+          contextRequest {
+            retrieval {
+              representationName: "summary"
+            }
+            related {
+              projection {
+                relationshipName: "reaction_to_reactionStep"
+                sourceIdentifier: "ALL_REACTION_STEP_ENTITY_ID"
+                scoring: MAX_SRC
+                direction: REVERSE
+              }
+              window {
+                maxLength: 100
+                representation: "dynamic_reaction"
+                contextRequest {
+                  retrieval {
+                    representationName: "summary"
+                    retrievalSpec: "#Wed May 03 15:44:50 EDT 2017\nfields=[\"REACTION_URI\",\"MAX_PRODUCT_YIELD\",\"REACTION_PRODUCTS\",\"REACTION_REACTANTS\",\"REACTION_STAGES\",\"REACTION_NOTES\",\"HAS_RXN_FILE\",\"CAN_NUM_SEQ\",\"REACTION_REFERENCE_URI\",\"REACTION_IDF\",\"DATABASE\",\"AN\",\"PUBMED_ID\",\"PRIMARY_REFERENCE_TYPES\",\"PUBLISHED_TITLE\",\"PUB_TITLE\",\"PUB_VOLUME\",\"PUB_ISSUE\",\"PUB_YEAR\",\"PAGINATION\",\"PATENT_PDF_KEY\",\"PATENT_PDF_PLUS_KEY\",\"PATENT_INTERACTIVE_KEY\",\"AUTHORS\",\"EDITORS\",\"INVENTORS\",\"CORPORATE_AUTHORS\",\"PATENT_URI\",\"PATENT_NUMBER\",\"DISPLAY_PATENT_NUMBER\",\"SINGLE_STEP_SCHEME_IDENTIFIER\",\"SINGLE_STEP_MULTISTEP_REACTION_URI\",\"NUM_REACTIONS_IN_SINGLE_STEP_SCHEME\",\"IMAGES\",\"PATENT_OFFICE_CODE\",\"PATENT_KIND_CODE\",\"PATENT_OFFICE\",\"PATENT_PUBLICATION_DATE\",\"PATENT_PUBLICATION_YEAR\",\"ORGANIZATION_NAME\",\"ORGANIZATION_COUNTRY\",\"DOI\",\"EISSN\",\"LISSN\",\"CODEN\",\"PATENT_SEQUENCE_NUMBER\",\"ISSN_PRINT\",\"ISSN_UNSPECIFIED\",\"PATENT_APPLICATION_NUMBER\",\"DISPLAY_PATENT_APPLICATION_NUMBER\",\"PATENT_APPLICATION_DATE\",\"REACTION_STEP_ID\",\"CAS_METHOD_NUMBER\",\"METHOD_PROCEDURES\",\"METHOD_SCALE\",\"METHOD_PRODUCT_CHARACTERIZATIONS\",\"TRANSFORMATION_NAME\",\"LANG_NAME\",\"PATENT_SEQUENCE_NUMBER\",\"ORGANIZATION_NAME\",\"ORGANIZATION_ADDRESS_LINE\",\"ORGANIZATION_CITY\",\"ORGANIZATION_COUNTRY\",\"ORGANIZATION_COUNTRY_SUBUNIT\",\"ORGANIZATION_POSTAL_CODE\",\"ORGANIZATION_SUBDIVISION\",\"PATENT_ASSIGNEES\",\"EXPERIMENTAL_PROCEDURES\",\"HAS_METHOD_AVAILABLE\"]\n"
+                  }
+                  related {
+                    projection {
+                      relationshipName: "substance_to_reaction"
+                      sourceIdentifier: "ALL-SUBSTANCE-ENTITY-ID"
+                      scoring: MAX_SRC
+                      direction: REVERSE
+                    }
+                    window {
+                      offset: 0
+                      maxLength: 100
+                      representation: "summary"
+                      retrievalSpec: "#Wed May 03 15:44:50 EDT 2017\nfields=[\"RN\",\"CAS_PREF_NAME\",\"TABULAR_COMPONENT\",\"ALLOY_COMPONENTS\",\"CAS_DISPLAY_NAME\",\"REACTION_COUNT\",\"CATALOG_ITEM_COUNT\"]\n"
+                      querySpec {
+                        searchName: "solr"
+                        queryId: "reactionTextQueryId"
+                      }
+                      normalizeScores: false
+                    }
+                  }
+                  related {
+                    projection {
+                      relationshipName: "reactionStep_to_reference"
+                      sourceIdentifier: "ALL_REFERENCE_ENTITY_ID"
+                      scoring: MAX_SRC
+                      direction: FORWARD
+                    }
+                    window {
+                      maxLength: 1
+                      representation: "doc_dynamic"
+                      contextRequest {
+                        related {
+                          projection {
+                            relationshipName: "reference_to_patent_family"
+                            sourceIdentifier: "ALL_PATENT_FAMILY_MEMBER_ENTITY_ID"
+                          }
+                          window {
+                            maxLength: 1000
+                            representation: "summary"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  identifier: "REACTION-SCHEME-RESULTS"
+}
+exploreQuery {
+  queryId: "reactionTextQueryId"
+  query: "*b\b\002\022\0172\r\n\002RN\022\a64-18-6\032\0272\025\n\nDELETED_RN\022\a64-18-6\"\0322\030\n\rCAS_PREF_NAME\022\a64-18-6\"\0302\026\n\vCAS_SYNONYM\022\a64-18-6"
+}
