@@ -16,9 +16,18 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -35,6 +44,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -76,6 +86,7 @@ public class Main extends JFrame {
   private JMenuItem mntmSaveAs;
   private JPanel statusPanel;
   private JLabel statusLabel;
+  private Main PARENT;
 
 
 
@@ -108,6 +119,7 @@ public class Main extends JFrame {
    * Create the frame.
    */
   public Main() {
+    PARENT = this;
     initComponents();
     createEvents();
   }
@@ -152,6 +164,55 @@ public class Main extends JFrame {
 
 
 
+  // call either saveCurrent or saveNew depending if we have a current file 
+  private boolean save() {
+    if ( currentFile != null ) {
+      return saveCurrent();
+    } else {
+      return saveNew();
+    }
+  }
+
+
+
+
+  private boolean saveNew() {
+    try {
+      File newFile = createJFileChooser( false );
+      if ( newFile != null ) {
+        textContent.write( new FileWriter( newFile ) );
+        statusLabel.setText( "Saved " + currentFile.getAbsolutePath() );
+        modified = false;
+        currentFile = newFile;
+        refreshTitle();
+        return true;
+      }
+    } catch ( Exception ex ) {
+      statusLabel.setText( "Error: " + ex.getMessage() );
+      return false;
+    }
+    return false;
+  }
+
+
+
+
+  private boolean saveCurrent() {
+    try {
+      textContent.write( new FileWriter( currentFile ) );
+      modified = false;
+      statusLabel.setText( "Saved " + currentFile.getAbsolutePath() );
+      refreshTitle();
+      return true;
+    } catch ( Exception ex ) {
+      statusLabel.setText( "Error: " + ex.getMessage() );
+      return false;
+    }
+  }
+
+
+
+
   /**
    * Create all the events
    */
@@ -168,6 +229,7 @@ public class Main extends JFrame {
         } catch ( Exception ex ) {
           if ( ex instanceof ParseException ) {
             textContent.setCaretPosition( ( (ParseException)ex ).getOffset() );
+            textContent.requestFocusInWindow();
           }
           statusLabel.setText( ex.getMessage() );
         }
@@ -177,6 +239,14 @@ public class Main extends JFrame {
     // New file (clear everything out) 
     mntmNew.addActionListener( new ActionListener() {
       public void actionPerformed( ActionEvent e ) {
+        if ( modified ) {
+          int option = JOptionPane.showConfirmDialog( PARENT, "Save before clearing the buffer?", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION );
+          if ( JOptionPane.CANCEL_OPTION == option ) {
+            return;
+          } else if ( JOptionPane.YES_OPTION == option ) {
+            save();
+          }
+        }
         statusLabel.setText( "Ready" );
         setTitle( TITLE );
         textContent.setText( null );
@@ -208,32 +278,14 @@ public class Main extends JFrame {
     // Save a file
     mntmSave.addActionListener( new ActionListener() {
       public void actionPerformed( ActionEvent e ) {
-        try {
-          textContent.write( new FileWriter( currentFile ) );
-          modified = false;
-          statusLabel.setText( "Saved " + currentFile.getAbsolutePath() );
-          refreshTitle();
-        } catch ( Exception ex ) {
-          statusLabel.setText( "Error: " + ex.getMessage() );
-        }
+        save();
       }
     } );
 
     // Save the current file with a different name
     mntmSaveAs.addActionListener( new ActionListener() {
       public void actionPerformed( ActionEvent e ) {
-        try {
-          File newFile = createJFileChooser( true );
-          if ( newFile != null ) {
-            textContent.write( new FileWriter( createJFileChooser( false ) ) );
-            statusLabel.setText( "Saved " + currentFile.getAbsolutePath() );
-            modified = false;
-            currentFile = newFile;
-            refreshTitle();
-          }
-        } catch ( Exception ex ) {
-          statusLabel.setText( "Error: " + ex.getMessage() );
-        }
+        saveNew();
       }
     } );
 
@@ -265,7 +317,23 @@ public class Main extends JFrame {
     setIconImages( icons );
 
     setTitle( TITLE );
-    setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+    setDefaultCloseOperation( JFrame.DO_NOTHING_ON_CLOSE );
+    addWindowListener( new WindowAdapter() {
+      @Override
+      public void windowClosing( WindowEvent we ) {
+        if ( modified ) {
+          int option = JOptionPane.showConfirmDialog( PARENT, "Save before exiting?", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION );
+          if ( option == JOptionPane.CANCEL_OPTION ) {
+            return;
+          } else if ( option == JOptionPane.YES_OPTION ) {
+            if ( !save() ) {
+              return;
+            }
+          }
+        }
+        System.exit( 0 );
+      }
+    } );
     setBounds( 100, 100, 600, 600 );
 
     menuBar = new JMenuBar();
@@ -305,14 +373,14 @@ public class Main extends JFrame {
     mnFile.add( mntmExit );
 
     contentPane = new JPanel();
-    contentPane.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
+    contentPane.setBorder( new EmptyBorder(0, 0, 0, 0) );
     setContentPane( contentPane );
 
     scrollPane = new JScrollPane();
     textContent = new JTextArea();
     textContent.setFont( new Font( "Consolas", textContent.getFont().getStyle(), textContent.getFont().getSize() + 1 ) );
-    //scrollPane.addCaretListener(new VisibleCaretListener());
     textContent.getDocument().addDocumentListener( new MyDocumentListener() );
+    DropTarget target = new DropTarget( textContent, new MyDropTargetListener() );
     scrollPane.setViewportView( textContent );
 
     statusPanel = new JPanel();
@@ -323,23 +391,8 @@ public class Main extends JFrame {
     btnConvert.setToolTipText( "Convert the buffer into the selected format" );
 
     GroupLayout gl_contentPane = new GroupLayout( contentPane );
-    gl_contentPane.setHorizontalGroup(
-      gl_contentPane.createParallelGroup(Alignment.TRAILING)
-        .addGroup(gl_contentPane.createSequentialGroup()
-          .addComponent(statusPanel, GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
-          .addPreferredGap(ComponentPlacement.RELATED)
-          .addComponent(btnConvert, GroupLayout.PREFERRED_SIZE, 127, GroupLayout.PREFERRED_SIZE))
-        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE)
-    );
-    gl_contentPane.setVerticalGroup(
-      gl_contentPane.createParallelGroup(Alignment.TRAILING)
-        .addGroup(gl_contentPane.createSequentialGroup()
-          .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 432, Short.MAX_VALUE)
-          .addPreferredGap(ComponentPlacement.RELATED)
-          .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
-            .addComponent(statusPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(btnConvert, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-    );
+    gl_contentPane.setHorizontalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( statusPanel, GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( btnConvert, GroupLayout.PREFERRED_SIZE, 127, GroupLayout.PREFERRED_SIZE ) ).addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE ) );
+    gl_contentPane.setVerticalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 432, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING, false ).addComponent( statusPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ).addComponent( btnConvert, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ) ) );
 
     statusLabel = new JLabel( "Ready" );
     statusLabel.setToolTipText( "Current status of the buffer" );
@@ -380,4 +433,52 @@ public class Main extends JFrame {
       //Plain text components do not fire these events
     }
   }
+
+  //
+  class MyDropTargetListener implements DropTargetListener {
+    public void dragEnter( DropTargetDragEvent e ) {}
+
+
+
+
+    public void dragExit( DropTargetEvent e ) {}
+
+
+
+
+    public void dragOver( DropTargetDragEvent e ) {}
+
+
+
+
+    public void dropActionChanged( DropTargetDragEvent e ) {
+
+    }
+
+
+
+
+    public void drop( DropTargetDropEvent e ) {
+      try {
+        // Accept the drop first, important!
+        if ( !modified ) {
+          e.acceptDrop( DnDConstants.ACTION_COPY_OR_MOVE );
+        }
+
+        // Get the files that are dropped as java.util.List
+        List list = (List)e.getTransferable().getTransferData( DataFlavor.javaFileListFlavor );
+
+        // Now get the first file from the list,
+        currentFile = (File)list.get( 0 );
+        textContent.read( new FileReader( currentFile ), null );
+        textContent.getDocument().addDocumentListener( new MyDocumentListener() );
+        modified = false;
+        refreshTitle();
+        statusLabel.setText( "Opened " + currentFile.getAbsolutePath() );
+      } catch ( Exception ex ) {
+        statusLabel.setText( "Error: " + ex.getMessage() );
+      }
+    }
+  }
+
 }
