@@ -373,7 +373,7 @@ public class Main extends JFrame {
     mnFile.add( mntmExit );
 
     contentPane = new JPanel();
-    contentPane.setBorder( new EmptyBorder(0, 0, 0, 0) );
+    contentPane.setBorder( new EmptyBorder( 0, 0, 0, 0 ) );
     setContentPane( contentPane );
 
     scrollPane = new JScrollPane();
@@ -460,15 +460,12 @@ public class Main extends JFrame {
 
     public void drop( DropTargetDropEvent e ) {
       try {
-        // Accept the drop first, important!
         if ( !modified ) {
           e.acceptDrop( DnDConstants.ACTION_COPY_OR_MOVE );
         }
 
-        // Get the files that are dropped as java.util.List
         List list = (List)e.getTransferable().getTransferData( DataFlavor.javaFileListFlavor );
 
-        // Now get the first file from the list,
         currentFile = (File)list.get( 0 );
         textContent.read( new FileReader( currentFile ), null );
         textContent.getDocument().addDocumentListener( new MyDocumentListener() );
