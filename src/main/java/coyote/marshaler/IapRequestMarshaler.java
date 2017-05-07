@@ -26,7 +26,7 @@ public class IapRequestMarshaler {
   public static DataFrame marshal( String text ) throws ParseException, IOException {
     DataFrame retval = new DataFrame();
     List<DataFrame> frames = null;
-    frames = new IapRequestParser( text ).parse();
+    frames = new IapRequestParser( text ).setLineDelimitsFields( true ).parse();
 
     if ( frames != null ) {
       for ( DataFrame frame : frames ) {

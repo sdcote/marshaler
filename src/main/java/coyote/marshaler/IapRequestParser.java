@@ -39,6 +39,29 @@ public class IapRequestParser {
   // index into the current buffer where we start capturing our value
   private int captureStart;
 
+  private boolean lineDelimitsFields = true;
+
+
+
+
+  /**
+   * @return the lineDelimitsFields
+   */
+  public boolean isLineDelimitingFields() {
+    return lineDelimitsFields;
+  }
+
+
+
+
+  /**
+   * @param flag true to set this parser to treat new lines (\n or ASCII10) to terminate a field value, false to ignore them
+   */
+  public IapRequestParser setLineDelimitsFields( boolean flag ) {
+    this.lineDelimitsFields = flag;
+    return this;
+  }
+
 
 
 
@@ -109,9 +132,17 @@ public class IapRequestParser {
 
 
 
+  private String getPosition() {
+    final int absIndex = bufferOffset + index;
+    return "line:" + line + " column:" + ( absIndex - lineOffset ) + " offset:" + ( isEndOfText() ? absIndex : absIndex - 1 ) + " char: '" + (char)current + "' (" + current + ")";
+  }
+
+
+
+
   private ParseException expected( final String expected ) {
     if ( isEndOfText() ) {
-      return error( "Unexpected end of input" );
+      return error( "Unexpected end of input: expecting " + expected );
     }
     return error( "Expected " + expected );
   }
@@ -159,7 +190,10 @@ public class IapRequestParser {
    */
   public List<DataFrame> parse() throws IOException {
     final List<DataFrame> retval = new ArrayList<DataFrame>();
-    read();
+    read(); // read the first character
+    if ( current == '[' || current == '{' ) {
+      read();
+    }
     skipWhiteSpace();
 
     while ( !isEndOfText() ) {
@@ -288,7 +322,9 @@ public class IapRequestParser {
         captureBuffer.append( (char)Integer.parseInt( new String( hexChars ), 16 ) );
         break;
       default:
-        throw expected( "valid escape sequence" );
+        // for simple or custom escape strategies in IAP
+        captureBuffer.append( '\\' );
+        captureBuffer.append( (char)current );
     }
     read();
   }
@@ -355,7 +391,7 @@ public class IapRequestParser {
       case '9':
         return new DataField( name, readNumber() );
       default:
-        throw expected( "value" );
+        return new DataField( name, readString() ); // assuming an unquoted name
     }
   }
 
@@ -371,23 +407,6 @@ public class IapRequestParser {
     }
     while ( readDigit() ) {}
     return true;
-  }
-
-
-
-
-  /**
-   * Read a quoted string.
-   * 
-   * @return the value within the quotes
-   * 
-   * @throws IOException if not quoted
-   */
-  private String readName() throws IOException {
-    if ( current != '"' ) {
-      throw expected( "name" );
-    }
-    return readStringInternal();
   }
 
 
@@ -445,9 +464,9 @@ public class IapRequestParser {
    * @throws IOException
    */
   private DataFrame readObject() throws IOException {
-
-    if ( current == '"' ) {
+    if ( current == '{' ) {
       read();
+      skipWhiteSpace();
     }
 
     final DataFrame object = new DataFrame();
@@ -459,22 +478,20 @@ public class IapRequestParser {
     do {
       // try to read the name
       skipWhiteSpace();
-      final String name = readStringInternal();
-      if ( current == '"' ) {
+      final String name = readStringInternal().trim();
+
+      skipWhiteSpace();
+
+      if ( current == ':' ) {
         read();
       }
 
-      skipWhiteSpace();
-      if ( !readChar( ':' ) ) {
-        throw expected( "':'" );
-      }
-      // next, read the value for this named field
       skipWhiteSpace();
       final DataField value = readFieldValue( name );
       object.add( value );
       skipWhiteSpace();
     }
-    while ( readChar( ',' ) );
+    while ( ( lineDelimitsFields && current != '}' ) || readChar( ',' ) );
     if ( !readChar( '}' ) ) {
       throw expected( "',' or '}'" );
     }
@@ -501,7 +518,9 @@ public class IapRequestParser {
       case '{':
         return readObject();
       default:
-        return new DataFrame( readField() );
+        DataFrame frame = new DataFrame( readField() );
+        System.out.println( frame );
+        return frame;
     }
   }
 
@@ -519,7 +538,7 @@ public class IapRequestParser {
     do {
       // try to read the name
       skipWhiteSpace();
-      final String name = readName();
+      final String name = readStringInternal().trim();
       skipWhiteSpace();
 
       if ( current == ':' ) {
@@ -531,7 +550,8 @@ public class IapRequestParser {
       retval = readFieldValue( name );
       skipWhiteSpace();
     }
-    while ( readChar( ',' ) );
+    while ( ( lineDelimitsFields && current != '}' ) || readChar( ',' ) );
+
     return retval;
   }
 
@@ -546,9 +566,13 @@ public class IapRequestParser {
 
 
   private String readStringInternal() throws IOException {
-    read();
+    boolean override = false;
+    if ( current == '"' ) {
+      read();
+      override = true;
+    }
     startCapture();
-    while ( current != '"' && current != ':' && current != '{' ) {
+    while ( current != '"' && ( override || current != ':' ) && current != '{' && ( lineDelimitsFields && current != '\n' ) ) {
       if ( current == '\\' ) {
         pauseCapture();
         readEscape();
@@ -560,7 +584,7 @@ public class IapRequestParser {
       }
     }
     final String string = endCapture();
-    if ( current != '{' ) {
+    if ( current == '"' ) {
       read();
     }
     return string;
