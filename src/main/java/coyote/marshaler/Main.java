@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -46,6 +47,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextArea;
@@ -60,6 +62,8 @@ import javax.swing.event.DocumentListener;
 import coyote.dataframe.DataFrame;
 import coyote.dataframe.marshal.JSONMarshaler;
 import coyote.dataframe.marshal.ParseException;
+import coyote.dataframe.marshal.XMLMarshaler;
+import java.awt.Component;
 
 
 /**
@@ -87,6 +91,10 @@ public class Main extends JFrame {
   private JPanel statusPanel;
   private JLabel statusLabel;
   private Main PARENT;
+  private ButtonGroup buttonGroup;
+  private JRadioButton rdbtnJson;
+  private JRadioButton rdbtnXml;
+  private JRadioButton rdbtnShot;
 
 
 
@@ -122,6 +130,36 @@ public class Main extends JFrame {
     PARENT = this;
     initComponents();
     createEvents();
+  }
+
+
+
+
+  private void clearButtons() {
+    rdbtnJson.setSelected( false );
+    rdbtnXml.setSelected( false );
+    rdbtnShot.setSelected( false );
+  }
+
+
+
+
+  private boolean isJsonSelected() {
+    return rdbtnJson.isSelected();
+  }
+
+
+
+
+  private boolean isXmlSelected() {
+    return rdbtnXml.isSelected();
+  }
+
+
+
+
+  private boolean isShotSelected() {
+    return rdbtnShot.isSelected();
   }
 
 
@@ -223,8 +261,17 @@ public class Main extends JFrame {
       public void actionPerformed( ActionEvent e ) {
         try {
           model = IapRequestMarshaler.marshal( textContent.getText() );
-          textContent.setText( JSONMarshaler.toFormattedString( model ) );
-          statusLabel.setText( "Successfully converted" );
+          if ( isJsonSelected() ) {
+            textContent.setText( JSONMarshaler.toFormattedString( model ) );
+            statusLabel.setText( "Successfully converted to JSON" );
+          } else if ( isXmlSelected() ) {
+            textContent.setText( XMLMarshaler.toFormattedString( model ) );
+            statusLabel.setText( "Successfully converted to XML" );
+          } else {
+            textContent.setText( IapRequestMarshaler.marshal( model ) );
+            statusLabel.setText( "Successfully converted to SHoT format" );
+          }
+
           modified = true;
         } catch ( Exception ex ) {
           if ( ex instanceof ParseException ) {
@@ -390,9 +437,45 @@ public class Main extends JFrame {
     btnConvert = new JButton( "Convert" );
     btnConvert.setToolTipText( "Convert the buffer into the selected format" );
 
+    buttonGroup = new ButtonGroup();
+    rdbtnJson = new JRadioButton( "JSON" );
+    rdbtnJson.setToolTipText( "Convert the buffer to JSON format" );
+    buttonGroup.add( rdbtnJson );
+    rdbtnXml = new JRadioButton( "XML" );
+    rdbtnXml.setToolTipText( "Convert the buffer to XML format" );
+    buttonGroup.add( rdbtnXml );
+    rdbtnShot = new JRadioButton( "SHoT" );
+    rdbtnShot.setToolTipText( "Convert the buffer to SHoT format" );
+    buttonGroup.add( rdbtnShot );
+
     GroupLayout gl_contentPane = new GroupLayout( contentPane );
-    gl_contentPane.setHorizontalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( statusPanel, GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( btnConvert, GroupLayout.PREFERRED_SIZE, 127, GroupLayout.PREFERRED_SIZE ) ).addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE ) );
-    gl_contentPane.setVerticalGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING ).addGroup( gl_contentPane.createSequentialGroup().addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 432, Short.MAX_VALUE ).addPreferredGap( ComponentPlacement.RELATED ).addGroup( gl_contentPane.createParallelGroup( Alignment.TRAILING, false ).addComponent( statusPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ).addComponent( btnConvert, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ) ) );
+    gl_contentPane.setHorizontalGroup(
+      gl_contentPane.createParallelGroup(Alignment.TRAILING)
+        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
+        .addGroup(gl_contentPane.createSequentialGroup()
+          .addContainerGap(330, Short.MAX_VALUE)
+          .addComponent(rdbtnJson)
+          .addPreferredGap(ComponentPlacement.RELATED)
+          .addComponent(rdbtnXml)
+          .addPreferredGap(ComponentPlacement.RELATED)
+          .addComponent(rdbtnShot)
+          .addPreferredGap(ComponentPlacement.UNRELATED)
+          .addComponent(btnConvert, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE))
+        .addComponent(statusPanel, GroupLayout.DEFAULT_SIZE, 575, Short.MAX_VALUE)
+    );
+    gl_contentPane.setVerticalGroup(
+      gl_contentPane.createParallelGroup(Alignment.TRAILING)
+        .addGroup(gl_contentPane.createSequentialGroup()
+          .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 484, GroupLayout.PREFERRED_SIZE)
+          .addPreferredGap(ComponentPlacement.UNRELATED)
+          .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+            .addComponent(btnConvert, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(rdbtnShot)
+            .addComponent(rdbtnXml)
+            .addComponent(rdbtnJson))
+          .addGap(5)
+          .addComponent(statusPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+    );
 
     statusLabel = new JLabel( "Ready" );
     statusLabel.setToolTipText( "Current status of the buffer" );
@@ -472,10 +555,11 @@ public class Main extends JFrame {
         modified = false;
         refreshTitle();
         statusLabel.setText( "Opened " + currentFile.getAbsolutePath() );
+        clearButtons();
       } catch ( Exception ex ) {
         statusLabel.setText( "Error: " + ex.getMessage() );
       }
     }
-  }
 
+  }
 }

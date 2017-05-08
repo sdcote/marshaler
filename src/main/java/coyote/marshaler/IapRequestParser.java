@@ -3,8 +3,6 @@ package coyote.marshaler;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
 
 import coyote.dataframe.DataField;
 import coyote.dataframe.DataFrame;
@@ -188,8 +186,8 @@ public class IapRequestParser {
    * @return the data represented by the currently set string as one or more 
    * DataFrames
    */
-  public List<DataFrame> parse() throws IOException {
-    final List<DataFrame> retval = new ArrayList<DataFrame>();
+  public DataFrame parse() throws IOException {
+    final DataFrame retval = new DataFrame();
     read();
     if ( current == '[' || current == '{' ) {
       read();
@@ -199,7 +197,7 @@ public class IapRequestParser {
     // we should be at the first named
 
     while ( !isEndOfText() ) {
-      retval.add( readRootValue() );
+      retval.add( readField() );
       skipWhiteSpace();
     }
 

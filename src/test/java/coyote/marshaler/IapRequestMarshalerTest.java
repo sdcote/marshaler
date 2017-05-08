@@ -1,3 +1,4 @@
+package coyote.marshaler;
 
 /*
  * Copyright (c) 2017 Stephan D. Cote' - All rights reserved.
@@ -10,16 +11,16 @@
  *   Stephan D. Cote 
  *      - Initial concept and implementation
  */
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import coyote.dataframe.DataFrame;
 import coyote.dataframe.marshal.ParseException;
-import coyote.marshaler.IapRequestMarshaler;
 
 
 /**
@@ -49,6 +50,10 @@ public class IapRequestMarshalerTest {
   public void simple() throws ParseException, IOException {
     String text = "entity {\n  entityName: \"substance\"\n  identifier: \"ALL-SUBSTANCE-ENTITY-ID\"\n}\n";
     DataFrame frame = IapRequestMarshaler.marshal( text );
+    System.out.println( IapRequestMarshaler.marshal( frame ) );
+
+    text = "entity {\nentityName: \"substance\"\nidentifier: \"ALL-SUBSTANCE-ENTITY-ID\"\n}\n";
+    frame = IapRequestMarshaler.marshal( text );
   }
 
 
@@ -58,7 +63,22 @@ public class IapRequestMarshalerTest {
   public void nested() throws ParseException, IOException {
     String text = "entity {\n  entityName: \"substance\"\n  constraint {\n    type: SEARCH\n    search {\n      searchName: \"solr\"\n      queryId: \"reactionTextQueryId\"\n    }\n  }\n  identifier: \"substanceEntityIdForReactionTextQuery\"\n}\n";
     DataFrame frame = IapRequestMarshaler.marshal( text );
+    System.out.println( IapRequestMarshaler.marshal( frame ) );
+  }
 
+
+
+
+  @Test
+  public void intent() {
+    String indent = IapRequestMarshaler.getIndent( -1, 2 );
+    assertTrue( indent.length() == 0 );
+    indent = IapRequestMarshaler.getIndent( 0, 2 );
+    assertTrue( indent.length() == 0 );
+    indent = IapRequestMarshaler.getIndent( 1, 2 );
+    assertTrue( indent.length() == 2 );
+    indent = IapRequestMarshaler.getIndent( 2, 2 );
+    assertTrue( indent.length() == 4 );
   }
 
 }
