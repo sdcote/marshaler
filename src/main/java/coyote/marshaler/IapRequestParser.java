@@ -190,11 +190,13 @@ public class IapRequestParser {
    */
   public List<DataFrame> parse() throws IOException {
     final List<DataFrame> retval = new ArrayList<DataFrame>();
-    read(); // read the first character
+    read();
     if ( current == '[' || current == '{' ) {
       read();
     }
     skipWhiteSpace();
+
+    // we should be at the first named
 
     while ( !isEndOfText() ) {
       retval.add( readRootValue() );
@@ -510,7 +512,7 @@ public class IapRequestParser {
 
 
 
-  // this is usually
+  // this is usually an entity object
   private DataFrame readRootValue() throws IOException {
     switch ( current ) {
       case '[':
@@ -527,10 +529,11 @@ public class IapRequestParser {
 
 
 
-  // TODO: Forgiving JSON  field
+  // TODO: Forgiving JSON field - a name with some value
   private DataField readField() throws IOException {
     DataField retval = null;
 
+    // ignore quoted names
     if ( current == '"' ) {
       read();
     }
@@ -545,12 +548,12 @@ public class IapRequestParser {
         read();
       }
 
-      // next, read the value for this named field
+      // next, read the value for this named field, which may be an object "{}"
       skipWhiteSpace();
       retval = readFieldValue( name );
       skipWhiteSpace();
     }
-    while ( ( lineDelimitsFields && current != '}' ) || readChar( ',' ) );
+    while ( !isEndOfText() && ( current == ',' && ( lineDelimitsFields && current != '}' ) ) );
 
     return retval;
   }
