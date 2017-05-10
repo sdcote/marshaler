@@ -59,7 +59,7 @@ public class IapRequestMarshaler {
     } else {
       String name = field.getName().toLowerCase();
       if ( !name.equals( "retrievalspec" ) ) {
-        if ( name.endsWith( "name" ) || name.endsWith( "identifier" ) || name.equals( "representation" ) || name.equals( "queryId" ) ) {
+        if ( name.endsWith( "name" ) || name.endsWith( "identifier" ) || name.equals( "representation" ) || name.equals( "queryId" ) || name.equals( "key" ) ) {
           b.append( '"' );
           b.append( field.getStringValue() );
           b.append( '"' );
